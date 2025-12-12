@@ -18,7 +18,6 @@
 
 <h2>Log New Order</h2>
 <form id="logOrderForm">
-  <input type="text" id="orderId" placeholder="Order ID (unique)" required>
   <input type="email" id="email" placeholder="Customer Email" required>
   <input type="text" id="discord" placeholder="Discord (optional)">
   <input type="text" id="platform" placeholder="Platform (optional)">
@@ -46,6 +45,13 @@
 const LOG_ORDER_URL = '/functions/log-order'; // adjust to your Worker path
 const GET_ORDERS_URL = '/functions/get-orders';
 const UPDATE_ORDER_URL = '/functions/update-order';
+
+// Function to generate a unique order ID
+function generateOrderId() {
+  const timestamp = Date.now().toString(36); // time-based unique string
+  const random = Math.random().toString(36).substring(2, 6); // random string
+  return `ORD-${timestamp}-${random}`;
+}
 
 async function fetchOrders() {
   const res = await fetch(GET_ORDERS_URL);
@@ -85,7 +91,7 @@ async function updateStatus(orderId, status) {
 
 document.getElementById('logOrderForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const id = document.getElementById('orderId').value;
+  const id = generateOrderId();
   const email = document.getElementById('email').value;
   const discord = document.getElementById('discord').value;
   const platform = document.getElementById('platform').value;
