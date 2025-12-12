@@ -175,11 +175,20 @@ document.getElementById('orderForm').addEventListener('submit', async (e) => {
   }
 
   try {
-    const res = await fetch('/functions/log-order', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ id, email, discord, platform, pkg, transferMethod, status:'pending' })
-    });
+const res = await fetch('https://mydadssoftrecoverys.pages.dev/functions/log-order', {
+  method: 'POST', // Must be POST
+  headers: {'Content-Type': 'application/json'},
+  body: JSON.stringify({
+    id,
+    email,
+    discord,
+    platform,
+    pkg,
+    transferMethod,
+    status: 'pending'
+  })
+});
+
 
     const data = await res.json();
     const statusDiv = document.getElementById('status');
@@ -208,3 +217,4 @@ document.getElementById('orderForm').addEventListener('submit', async (e) => {
 
 </body>
 </html>
+
