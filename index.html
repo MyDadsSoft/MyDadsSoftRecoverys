@@ -4,42 +4,60 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MyDadsSoft Recoverys</title>
-<script src="https://www.paypal.com/sdk/js?client-id=AcEJpJURRXbxavTwWGd9bqyrAKDoGpZf8zBhDFOnhdsD8IWFOctPEBtJzoKxBIlwmF0rJHQ2EYQkJtRo"></script>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <style>
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
-  color: #333;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #1f1c2c, #928dab);
+  color: #fff;
   margin: 0;
   padding: 0;
 }
 header {
   text-align: center;
-  padding: 2em;
-  background-color: #222;
-  color: #fff;
+  padding: 3em 1em;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(5px);
 }
-header h1 { margin: 0; font-size: 2em; }
-header p { margin: 0.5em 0 0; }
+header h1 { margin: 0; font-size: 2.5em; letter-spacing: 1px; }
+header p { margin-top: 0.5em; font-weight: 300; }
 
 .card {
-  background: #fff;
+  background: rgba(255,255,255,0.1);
   padding: 2em;
   margin: 2em auto;
-  border-radius: 10px;
+  border-radius: 15px;
   max-width: 600px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  backdrop-filter: blur(10px);
 }
 
-label { display:block; margin:1em 0 0.5em; font-weight: bold; }
+label { display:block; margin:1em 0 0.5em; font-weight: 600; }
 input, select {
-  width:100%; padding:10px; border-radius:5px; border:1px solid #ccc;
+  width:100%; padding:10px; border-radius:5px; border:none;
+  background: rgba(255,255,255,0.2); color: #fff;
 }
+input::placeholder { color: #ddd; }
 
-#paypal-button-container { margin-top: 20px; }
+button {
+  margin-top: 1em;
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background: #ffb74d;
+  color: #222;
+  font-weight: bold;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: 0.3s;
+}
+button:hover { background: #ffa726; }
 
 #customAmountContainer { display: none; }
+
+h2 { text-align: center; margin-bottom: 1em; }
+
+#status { text-align: center; margin-top: 1em; font-weight: bold; }
 </style>
 </head>
 <body>
@@ -52,11 +70,15 @@ input, select {
 <section class="card">
   <h2>Order a Boost / Recovery</h2>
   <form id="orderForm">
-    <label>Email <input type="email" id="email" required></label>
-    <label>Discord <input type="text" id="discord" required></label>
-    <label>Platform <select id="platform"><option>PC</option></select></label>
+    <label>Email <input type="email" id="email" placeholder="customer@example.com" required></label>
+    <label>Discord <input type="text" id="discord" placeholder="username#0001" required></label>
+    <label>Platform
+      <select id="platform">
+        <option>PC</option>
+      </select>
+    </label>
     <label>Package
-      <select id="package">
+      <select id="pkg">
         <option value="5">10 Million — £5</option>
         <option value="15">50 Million — £15</option>
         <option value="25">100 Million — £25</option>
@@ -71,65 +93,54 @@ input, select {
         <option value="discord_dm">Discord DM</option>
       </select>
     </label>
+    <button type="submit">Log Order (Friends & Family)</button>
   </form>
-
-  <div id="paypal-button-container"></div>
+  <div id="status"></div>
 </section>
 
 <script>
-const form = document.getElementById('orderForm');
-const pkg = document.getElementById('package');
+// Show custom amount field
+const pkgSelect = document.getElementById('pkg');
 const customC = document.getElementById('customAmountContainer');
-
-pkg.addEventListener('change', () => {
-  customC.style.display = pkg.value === 'custom' ? 'block' : 'none';
+pkgSelect.addEventListener('change', () => {
+  customC.style.display = pkgSelect.value === 'custom' ? 'block' : 'none';
 });
 
-async function getUserCurrency() {
-  try { const res = await fetch('https://ipapi.co/json/'); const data = await res.json(); return data.currency || 'GBP'; } catch { return 'GBP'; }
+// Generate unique ID
+function generateOrderId() {
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substring(2, 6);
+  return `ORD-${timestamp}-${random}`;
 }
 
-async function convertPriceGBPTo(amountGBP, currency) {
-  if(currency === 'GBP') return amountGBP;
-  const res = await fetch(`https://api.exchangerate.host/convert?from=GBP&to=${currency}&amount=${amountGBP}`);
+// Submit order to Cloudflare KV
+document.getElementById('orderForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = generateOrderId();
+  const email = document.getElementById('email').value;
+  const discord = document.getElementById('discord').value;
+  const platform = document.getElementById('platform').value;
+  const pkg = document.getElementById('pkg').value === 'custom' ? document.getElementById('customAmount').value : document.getElementById('pkg').value;
+  const transferMethod = document.getElementById('transferMethod').value;
+
+  const res = await fetch('/functions/log-order', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ id, email, discord, platform, pkg, transferMethod, status:'paid' })
+  });
+
   const data = await res.json();
-  return data.result;
-}
-
-// Render PayPal button once
-paypal.Buttons({
-  style: { layout: 'vertical', shape: 'rect', color: 'gold', label: 'pay' },
-  onClick: async (data, actions) => {
-    if(!form.email.value || !form.discord.value) { alert('Please fill in all required fields!'); return actions.reject(); }
-    return actions.resolve();
-  },
-  createOrder: async (data, actions) => {
-    const amountGBP = pkg.value === 'custom' ? Number(document.getElementById('customAmount').value) : Number(pkg.value);
-    const currency = await getUserCurrency();
-    const amount = await convertPriceGBPTo(amountGBP, currency);
-    return actions.order.create({
-      purchase_units: [{ amount: { value: amount.toFixed(2), currency_code: currency } }]
-    });
-  },
-  onApprove: async (data, actions) => {
-    const details = await actions.order.capture();
-    confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
-    alert(`Payment successful: ${details.payer.name.given_name} (${details.purchase_units[0].amount.currency_code} ${details.purchase_units[0].amount.value})`);
-    await fetch('/functions/paypal-webhook', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        orderID: details.id,
-        email: form.email.value,
-        discord: form.discord.value,
-        platform: form.platform.value,
-        transferMethod: form.transferMethod.value,
-        package: pkg.value
-      })
-    });
-  },
-  onError: err => { console.error(err); alert('PayPal checkout failed.'); }
-}).render('#paypal-button-container');
+  const statusDiv = document.getElementById('status');
+  if(data.success) {
+    statusDiv.textContent = `Order logged successfully! Order ID: ${id}`;
+    statusDiv.style.color = '#4caf50';
+    form.reset();
+    customC.style.display = 'none';
+  } else {
+    statusDiv.textContent = `Error: ${data.error}`;
+    statusDiv.style.color = '#ff5252';
+  }
+});
 </script>
 
 </body>
