@@ -4,14 +4,15 @@ export default {
       return new Response('Method Not Allowed', { status: 405 });
     }
 
-    const url = new URL(request.url);
-    const apiKey = url.searchParams.get('apiKey');
-    if (apiKey !== 'YOUR_ADMIN_KEY') {
-      return new Response('Unauthorized', { status: 401 });
-    }
-
     try {
       const { orderId, status } = await request.json();
+
+      if (!orderId || !status) {
+        return new Response(JSON.stringify({ success: false, error: 'Missing orderId or status' }), {
+          headers: { 'Content-Type': 'application/json' },
+          status: 400
+        });
+      }
 
       const order = await env.ORDERS.get(orderId, { type: 'json' });
       if (!order) {
