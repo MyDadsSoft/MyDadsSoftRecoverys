@@ -4,11 +4,29 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MyDadsSoft Recoverys</title>
-<link rel="stylesheet" href="/styles.css">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
-<script src="https://www.paypal.com/sdk/js?client-id=AcEJpJURRXbxavTwWGd9bqyrAKDoGpZf8zBhDFOnhdsD8IWFOctPEBtJzoKxBIlwmF0rJHQ2EYQkJtRo"></script>
+<script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
+
+body { font-family:'Orbitron',sans-serif; background:linear-gradient(135deg,#0f001f,#2c003e); color:#fff; margin:0; padding:0; overflow-x:hidden; }
+header{text-align:center; padding:2em; background:rgba(40,0,80,0.85); box-shadow:0 0 30px #ff00ff; border-bottom:2px solid #ff00ff;}
+header h1{font-size:3em; color:#ff00ff; text-shadow:0 0 10px #ff00ff,0 0 20px #ff6eff; margin:0;}
+header p{font-size:1.2em; color:#ff6eff; text-shadow:0 0 5px #ff6eff;}
+.card{background:rgba(20,0,40,0.85); padding:40px; margin:2em auto; border-radius:25px; width:90%; max-width:650px; box-shadow:0 0 30px #ff6eff,0 0 60px #ff00ff; transition:transform 0.4s, box-shadow 0.4s;}
+.card:hover{transform:translateY(-10px); box-shadow:0 0 40px #ff6eff,0 0 80px #ff00ff;}
+label{display:block;margin:15px 0;font-weight:600;font-size:1.1em;}
+input,select{width:100%;padding:12px;border-radius:12px;border:none;margin-top:5px;font-size:1em;background:rgba(255,255,255,0.05);color:#fff;}
+input:focus,select:focus{outline:none;box-shadow:0 0 10px #ff6eff,0 0 20px #ff00ff;}
+.btn{background:linear-gradient(90deg,#ff6eff,#ff00ff);color:#fff;border:none;padding:14px 25px;border-radius:15px;cursor:pointer;margin:5px 2px;font-weight:700;font-size:1em;transition:transform 0.3s,box-shadow 0.3s;}
+.btn:hover{transform:scale(1.1);box-shadow:0 0 20px #ff00ff,0 0 40px #ff6eff;}
+#paypal-button-container{margin-top:30px;}
+#customAmountContainer{display:none;}
+@media(max-width:600px){header h1{font-size:2.2em;}.card{padding:25px;}.btn{padding:12px 20px;font-size:0.9em;}}
+</style>
 </head>
 <body>
+
 <header>
   <h1>MyDadsSoft Recoverys</h1>
   <p>GTA V Account Boosting & Safe Recoveries Since 2013</p>
@@ -28,7 +46,7 @@
         <option value="custom">Custom Amount</option>
       </select>
     </label>
-    <label id="customAmountContainer" style="display:none;">Custom Amount (GBP) <input type="number" id="customAmount" min="1"></label>
+    <label id="customAmountContainer">Custom Amount (GBP) <input type="number" id="customAmount" min="1"></label>
     <label>Transfer Method
       <select id="transferMethod">
         <option value="screenshare">Screen-share</option>
@@ -37,81 +55,32 @@
       </select>
     </label>
   </form>
-
-  <div id="paypal-button-container" style="margin-top:30px;"></div>
+  <div id="paypal-button-container"></div>
 </section>
 
 <script>
-const form = document.getElementById('orderForm');
-const pkg = document.getElementById('package');
-const customC = document.getElementById('customAmountContainer');
+const form=document.getElementById('orderForm');
+const pkg=document.getElementById('package');
+const customC=document.getElementById('customAmountContainer');
+pkg.addEventListener('change',()=>{customC.style.display=pkg.value==='custom'?'block':'none';});
 
-// Show custom amount input if selected
-pkg.addEventListener('change', () => {
-  customC.style.display = pkg.value === 'custom' ? 'block' : 'none';
-});
-
-// Detect user currency
-async function getUserCurrency() {
-  try {
-    const res = await fetch('https://ipapi.co/json/');
-    const data = await res.json();
-    return data.currency || 'GBP';
-  } catch { return 'GBP'; }
+async function getUserCurrency(){
+  try{const res=await fetch('https://ipapi.co/json/');const data=await res.json();return data.currency||'GBP';}catch{return 'GBP';}
 }
 
-// Convert GBP to user currency
-async function convertPriceGBPTo(amountGBP, currency) {
-  if (currency === 'GBP') return amountGBP;
-  const res = await fetch(`https://api.exchangerate.host/convert?from=GBP&to=${currency}&amount=${amountGBP}`);
-  const data = await res.json();
+async function convertPriceGBPTo(amountGBP,currency){
+  if(currency==='GBP') return amountGBP;
+  const res=await fetch(`https://api.exchangerate.host/convert?from=GBP&to=${currency}&amount=${amountGBP}`);
+  const data=await res.json();
   return data.result;
 }
 
-// Initialize PayPal buttons once
 paypal.Buttons({
-  style: { shape: 'pill', color: 'purple', layout: 'vertical', label: 'pay' },
-
-  onClick: async (data, actions) => {
-    // Validate required fields
-    if (!form.email.value || !form.discord.value) {
-      alert('Please fill in all required fields!');
-      return actions.reject();
-    }
-    return actions.resolve();
-  },
-
-  createOrder: async (data, actions) => {
-    const amountGBP = pkg.value === 'custom' ? Number(document.getElementById('customAmount').value) : Number(pkg.value);
-    const currency = await getUserCurrency();
-    const amount = await convertPriceGBPTo(amountGBP, currency);
-    return actions.order.create({
-      purchase_units: [{ amount: { value: amount.toFixed(2), currency_code: currency } }]
-    });
-  },
-
-  onApprove: async (data, actions) => {
-    const details = await actions.order.capture();
-    alert(`Payment successful: ${details.payer.name.given_name} (${details.purchase_units[0].amount.currency_code} ${details.purchase_units[0].amount.value})`);
-    // Send order info to backend
-    await fetch('/functions/paypal-webhook', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        orderID: details.id,
-        email: form.email.value,
-        discord: form.discord.value,
-        platform: form.platform.value,
-        transferMethod: form.transferMethod.value,
-        package: pkg.value
-      })
-    });
-  },
-
-  onError: err => {
-    console.error(err);
-    alert('PayPal checkout failed. Try again.');
-  }
+  style:{shape:'pill',color:'blue',layout:'vertical',label:'pay'},
+  onClick:async(data,actions)=>{if(!form.email.value||!form.discord.value){alert('Please fill in all required fields!');return actions.reject();}return actions.resolve();},
+  createOrder:async(data,actions)=>{const amountGBP=pkg.value==='custom'?Number(document.getElementById('customAmount').value):Number(pkg.value);const currency=await getUserCurrency();const amount=await convertPriceGBPTo(amountGBP,currency);return actions.order.create({purchase_units:[{amount:{value:amount.toFixed(2),currency_code:currency}}]});},
+  onApprove:async(data,actions)=>{const details=await actions.order.capture();confetti({particleCount:200,spread:70,origin:{y:0.6}});alert(`Payment successful: ${details.payer.name.given_name} (${details.purchase_units[0].amount.currency_code} ${details.purchase_units[0].amount.value})`);await fetch('/functions/paypal-webhook',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({orderID:details.id,email:form.email.value,discord:form.discord.value,platform:form.platform.value,transferMethod:form.transferMethod.value,package:pkg.value})});},
+  onError:err=>{console.error(err);alert('PayPal checkout failed. Try again.');}
 }).render('#paypal-button-container');
 </script>
 </body>
