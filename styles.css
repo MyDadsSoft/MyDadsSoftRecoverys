@@ -1,93 +1,113 @@
-/* Modern Premium Purple Theme */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
+
 body {
-    font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #2c003e, #4b148c);
-    color: #ffffff;
-    margin: 0;
-    padding: 0;
+  font-family: 'Orbitron', sans-serif;
+  background: linear-gradient(135deg, #0f001f, #2c003e);
+  color: #ffffff;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 header {
-    text-align: center;
-    padding: 2em;
-    background: rgba(75, 20, 140, 0.85);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  text-align: center;
+  padding: 2em;
+  background: rgba(40, 0, 80, 0.85);
+  box-shadow: 0 0 30px #ff00ff;
+  border-bottom: 2px solid #ff00ff;
 }
 
 header h1 {
-    font-size: 2.5em;
-    margin: 0;
-    color: #ffda57;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  font-size: 3em;
+  color: #ff00ff;
+  text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff6eff;
+  margin: 0;
 }
 
 header p {
-    font-size: 1.2em;
-    color: #e0c8ff;
+  font-size: 1.2em;
+  color: #ff6eff;
+  text-shadow: 0 0 5px #ff6eff;
 }
 
 .card {
-    background: rgba(91, 33, 165, 0.9);
-    padding: 30px;
-    margin: 2em auto;
-    border-radius: 20px;
-    width: 90%;
-    max-width: 600px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-    transition: transform 0.3s;
+  background: rgba(20, 0, 40, 0.85);
+  padding: 40px;
+  margin: 2em auto;
+  border-radius: 25px;
+  width: 90%;
+  max-width: 650px;
+  box-shadow: 0 0 30px #ff6eff, 0 0 60px #ff00ff;
+  transition: transform 0.4s, box-shadow 0.4s;
 }
 
 .card:hover {
-    transform: translateY(-5px);
-}
-
-.btn, .btn-small {
-    background: linear-gradient(90deg, #ff6ef7, #8e2fff);
-    color: #fff;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 12px;
-    cursor: pointer;
-    margin: 5px 2px;
-    font-weight: 600;
-    transition: background 0.3s, transform 0.2s;
-}
-
-.btn:hover, .btn-small:hover {
-    background: linear-gradient(90deg, #8e2fff, #ff6ef7);
-    transform: scale(1.05);
-}
-
-.order {
-    background: rgba(255,255,255,0.1);
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 15px;
-    backdrop-filter: blur(5px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  transform: translateY(-10px);
+  box-shadow: 0 0 40px #ff6eff, 0 0 80px #ff00ff;
 }
 
 label {
-    display: block;
-    margin: 12px 0;
-    font-weight: 500;
+  display: block;
+  margin: 15px 0;
+  font-weight: 600;
+  font-size: 1.1em;
 }
 
 input, select {
-    width: 100%;
-    padding: 10px;
-    border-radius: 10px;
-    border: none;
-    margin-top: 5px;
-    font-size: 1em;
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  margin-top: 5px;
+  font-size: 1em;
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+}
+
+input:focus, select:focus {
+  outline: none;
+  box-shadow: 0 0 10px #ff6eff, 0 0 20px #ff00ff;
+}
+
+.btn, .btn-small {
+  background: linear-gradient(90deg, #ff6eff, #ff00ff);
+  color: #fff;
+  border: none;
+  padding: 14px 25px;
+  border-radius: 15px;
+  cursor: pointer;
+  margin: 5px 2px;
+  font-weight: 700;
+  font-size: 1em;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.btn:hover, .btn-small:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px #ff00ff, 0 0 40px #ff6eff;
+}
+
+.order {
+  background: rgba(50, 0, 80, 0.85);
+  padding: 20px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 0 15px #ff6eff, 0 0 30px #ff00ff;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.order:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 25px #ff6eff, 0 0 50px #ff00ff;
 }
 
 #paypal-button-container {
-    margin-top: 25px;
+  margin-top: 30px;
 }
 
 @media (max-width: 600px) {
-    header h1 { font-size: 2em; }
-    .card { padding: 20px; }
-    .btn, .btn-small { padding: 10px 15px; font-size: 0.9em; }
+  header h1 { font-size: 2.2em; }
+  .card { padding: 25px; }
+  .btn, .btn-small { padding: 12px 20px; font-size: 0.9em; }
 }
