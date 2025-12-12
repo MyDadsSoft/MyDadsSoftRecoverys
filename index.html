@@ -87,10 +87,10 @@ h2 { text-align: center; margin-bottom: 1em; }
 <section class="card">
   <h2>Order a Boost / Recovery</h2>
 
-<div class="notice">
-  Recoveries are **ONLY allowed** on **Rockstar Games Launcher** accounts. <br>
-  Steam and Epic accounts are **NOT allowed**.
-</div>
+  <div class="notice">
+    Recoveries are <strong>ONLY allowed</strong> on <strong>Rockstar Games Launcher</strong> accounts. <br>
+    Steam and Epic accounts are <strong>NOT allowed</strong>.
+  </div>
 
   <form id="orderForm">
     <label>Email <input type="email" id="email" placeholder="customer@example.com" required></label>
@@ -123,13 +123,14 @@ h2 { text-align: center; margin-bottom: 1em; }
 </section>
 
 <script>
-// Price per million mapping
-const pricePerMillion = 0.5; // £0.5 per million (based on your £5 for 10M)
+// Price per million
+const pricePerMillion = 0.5; // £0.5 per million
 
 // Show custom amount field
 const pkgSelect = document.getElementById('pkg');
 const customC = document.getElementById('customAmountContainer');
 const customPriceDisplay = document.getElementById('customPriceDisplay');
+const customAmountInput = document.getElementById('customAmount');
 
 pkgSelect.addEventListener('change', () => {
   if(pkgSelect.value === 'custom') {
@@ -141,8 +142,6 @@ pkgSelect.addEventListener('change', () => {
   }
 });
 
-// Update price display dynamically
-const customAmountInput = document.getElementById('customAmount');
 customAmountInput.addEventListener('input', () => {
   const amount = Number(customAmountInput.value);
   if(amount > 0) {
@@ -155,12 +154,10 @@ customAmountInput.addEventListener('input', () => {
 
 // Generate unique ID
 function generateOrderId() {
-  const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).substring(2, 6);
-  return `ORD-${timestamp}-${random}`;
+  return `ORD-${Date.now().toString(36)}-${Math.random().toString(36).substring(2,6)}`;
 }
 
-// Submit order and redirect to PayPal.me
+// Submit order
 document.getElementById('orderForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -190,7 +187,11 @@ document.getElementById('orderForm').addEventListener('submit', async (e) => {
     if(data.success){
       statusDiv.textContent = `Order logged! Redirecting to PayPal...`;
       statusDiv.style.color = '#4caf50';
+
+      // Calculate price
       const price = (Number(pkg) * pricePerMillion).toFixed(2);
+
+      // Redirect to PayPal.me F&F
       const paypalLink = `https://paypal.me/MyDadsSoft/${price}`;
       window.open(paypalLink, '_blank');
     } else {
