@@ -1,8 +1,12 @@
-name = "my-dads-soft-recovery"   # Name of your Worker project
-type = "javascript"              # Change to "typescript" if you're using TypeScript
+name = "my-dads-soft-recovery"
+type = "javascript"
 
 [build]
 command = "npm install"
 
+kv_namespaces = [
+  { binding = "ORDERS", id = "xxxxxxx", preview_id = "xxxxxxx" }
+]
+
 [env.production]
-name = "my-dads-soft-recovery-worker"   # Name of your worker
+name = "my-dads-soft-recovery-worker"
