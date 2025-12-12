@@ -58,6 +58,23 @@ button:hover { background: #ffa726; }
 h2 { text-align: center; margin-bottom: 1em; }
 
 #status { text-align: center; margin-top: 1em; font-weight: bold; }
+
+.notice {
+  background: rgba(255,255,255,0.15);
+  padding: 1em;
+  margin: 1em 0;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: bold;
+  color: #ffeb3b;
+}
+
+#customPriceDisplay {
+  margin-top: 0.5em;
+  font-weight: bold;
+  color: #ffeb3b;
+  text-align: center;
+}
 </style>
 </head>
 <body>
@@ -69,6 +86,12 @@ h2 { text-align: center; margin-bottom: 1em; }
 
 <section class="card">
   <h2>Order a Boost / Recovery</h2>
+
+<div class="notice">
+  Recoveries are **ONLY allowed** on **Rockstar Games Launcher** accounts. <br>
+  Steam and Epic accounts are **NOT allowed**.
+</div>
+
   <form id="orderForm">
     <label>Email <input type="email" id="email" placeholder="customer@example.com" required></label>
     <label>Discord <input type="text" id="discord" placeholder="username#0001" required></label>
@@ -85,7 +108,8 @@ h2 { text-align: center; margin-bottom: 1em; }
         <option value="custom">Custom Amount</option>
       </select>
     </label>
-    <label id="customAmountContainer">Custom Amount (GBP) <input type="number" id="customAmount" min="1"></label>
+    <label id="customAmountContainer">Custom Amount (Million) <input type="number" id="customAmount" min="1"></label>
+    <div id="customPriceDisplay"></div>
     <label>Transfer Method
       <select id="transferMethod">
         <option value="screenshare">Screen-share</option>
@@ -99,11 +123,34 @@ h2 { text-align: center; margin-bottom: 1em; }
 </section>
 
 <script>
+// Price per million mapping
+const pricePerMillion = 0.5; // £0.5 per million (based on your £5 for 10M)
+
 // Show custom amount field
 const pkgSelect = document.getElementById('pkg');
 const customC = document.getElementById('customAmountContainer');
+const customPriceDisplay = document.getElementById('customPriceDisplay');
+
 pkgSelect.addEventListener('change', () => {
-  customC.style.display = pkgSelect.value === 'custom' ? 'block' : 'none';
+  if(pkgSelect.value === 'custom') {
+    customC.style.display = 'block';
+    customPriceDisplay.textContent = '';
+  } else {
+    customC.style.display = 'none';
+    customPriceDisplay.textContent = '';
+  }
+});
+
+// Update price display dynamically
+const customAmountInput = document.getElementById('customAmount');
+customAmountInput.addEventListener('input', () => {
+  const amount = Number(customAmountInput.value);
+  if(amount > 0) {
+    const price = (amount * pricePerMillion).toFixed(2);
+    customPriceDisplay.textContent = `Price: £${price}`;
+  } else {
+    customPriceDisplay.textContent = '';
+  }
 });
 
 // Generate unique ID
@@ -121,28 +168,39 @@ document.getElementById('orderForm').addEventListener('submit', async (e) => {
   const email = document.getElementById('email').value;
   const discord = document.getElementById('discord').value;
   const platform = document.getElementById('platform').value;
-  const pkg = pkgSelect.value === 'custom' ? document.getElementById('customAmount').value : pkgSelect.value;
+  const pkg = pkgSelect.value === 'custom' ? customAmountInput.value : pkgSelect.value;
   const transferMethod = document.getElementById('transferMethod').value;
 
-  // Log order to Cloudflare KV
-  const res = await fetch('/functions/log-order', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ id, email, discord, platform, pkg, transferMethod, status:'pending' })
-  });
+  if(!pkg || Number(pkg) <= 0){
+    document.getElementById('status').textContent = 'Please enter a valid amount!';
+    document.getElementById('status').style.color = '#ff5252';
+    return;
+  }
 
-  const data = await res.json();
-  const statusDiv = document.getElementById('status');
-  if(data.success) {
-    statusDiv.textContent = `Order logged! Redirecting to PayPal...`;
-    statusDiv.style.color = '#4caf50';
+  try {
+    const res = await fetch('/functions/log-order', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ id, email, discord, platform, pkg, transferMethod, status:'pending' })
+    });
 
-    // Open PayPal.me link in new tab
-    const paypalLink = `https://paypal.me/MyDadsSoft/${pkg}`;
-    window.open(paypalLink, '_blank');
-  } else {
-    statusDiv.textContent = `Error: ${data.error}`;
-    statusDiv.style.color = '#ff5252';
+    const data = await res.json();
+    const statusDiv = document.getElementById('status');
+
+    if(data.success){
+      statusDiv.textContent = `Order logged! Redirecting to PayPal...`;
+      statusDiv.style.color = '#4caf50';
+      const price = (Number(pkg) * pricePerMillion).toFixed(2);
+      const paypalLink = `https://paypal.me/MyDadsSoft/${price}`;
+      window.open(paypalLink, '_blank');
+    } else {
+      statusDiv.textContent = `Error: ${data.error}`;
+      statusDiv.style.color = '#ff5252';
+    }
+  } catch(err){
+    document.getElementById('status').textContent = 'Failed to log order.';
+    document.getElementById('status').style.color = '#ff5252';
+    console.error(err);
   }
 });
 </script>
