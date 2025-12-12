@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MDS Admin</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<header><h1>Admin Dashboard</h1></header>
+
+
+<section class="card">
+<h2>Orders</h2>
+<div id="orders"></div>
+</section>
+
+
+<script>
+async function loadOrders(){
+const res = await fetch('/data/orders.json?_=' + Date.now());
+return await res.json().catch(()=>[]);
+}
+
+
+async function render(){
+const orders = await loadOrders();
+const box = document.getElementById('orders');
+box.innerHTML = '';
+
+
+orders.forEach(o => {
+const div = document.createElement('div');
+div.className = 'order';
+div.innerHTML = `
+<strong>${o.id}</strong><br>
+<b>Email:</b> ${o.email}<br>
+<b>Discord:</b> ${o.discord}<br>
+<b>Platform:</b> ${o.platform}<br>
+<b>Package:</b> ${o.packageLabel}<br>
+<b>Method:</b> ${o.transferMethod}<br>
+<b>Status:</b> ${o.status}<br>
+<hr>
+<button onclick="markDone('${o.id}')" class="btn-small">Mark Completed</button>
+<button onclick="deleteCreds('${o.id}')" class="btn-small">Confirm Credentials Deleted</button>
+`;
+box.appendChild(div);
+});
+}
+
+
+async function markDone(id){
+await fetch('/functions/admin_status', {
+method:'POST', headers:{'Content-Type':'application/json'},
+body:JSON.stringify({id, status:'completed'})
+});
+render();
+}
+
+
+async function deleteCreds(id){
+await fetch('/functions/admin_status', {
+method:'POST', headers:{'Content-Type':'application/json'},
+body:JSON.stringify({id, deleted:true})
+});
+render();
+}
+
+
+render();
+</script>
+</body>
+</html>

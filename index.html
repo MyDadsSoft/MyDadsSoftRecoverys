@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<form id="orderForm">
+<label>Email
+<input type="email" id="email" required />
+</label>
+
+
+<label>Discord
+<input type="text" id="discord" required />
+</label>
+
+
+<label>Platform
+<select id="platform">
+<option>PC</option>
+</select>
+</label>
+
+
+<label>Recovery Package
+<select id="package">
+<option value="10m">10 Million — $5</option>
+<option value="50m">50 Million — $15</option>
+<option value="100m">100 Million — $25</option>
+<option value="custom">Custom Amount</option>
+</select>
+</label>
+
+
+<label id="customAmountContainer" style="display:none;">
+Custom Amount (Millions)
+<input type="number" id="customAmount" min="1" />
+</label>
+
+
+<label>Credential Transfer Method
+<select id="transferMethod">
+<option value="none">I'll send after contact</option>
+<option value="onetimelink">One‑time secret URL (Privnote)</option>
+<option value="screenshare">Screen-share</option>
+<option value="discord_dm">Discord DM</option>
+</select>
+</label>
+
+
+<label>Optional: One-time secret URL
+<input type="url" id="oneTimeUrl" placeholder="https://privnote.com/..." />
+</label>
+
+
+<button type="submit" class="btn">Pay & Submit Order</button>
+</form>
+</section>
+
+
+<script>
+const pkg = document.getElementById('package');
+const customC = document.getElementById('customAmountContainer');
+
+
+pkg.addEventListener('change', () => {
+customC.style.display = pkg.value === 'custom' ? 'block' : 'none';
+});
+
+
+document.getElementById('orderForm').addEventListener('submit', async (e) => {
+e.preventDefault();
+
+
+const data = {
+email: email.value,
+discord: discord.value,
+platform: platform.value,
+transferMethod: transferMethod.value,
+oneTimeUrl: oneTimeUrl.value.trim(),
+pkg: pkg.value,
+customAmount: customAmount.value || null
+};
+
+
+const res = await fetch('/functions/checkout', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify(data)
+});
+
+
+const js = await res.json();
+if (js.url) window.location = js.url;
+else alert('Error creating payment session');
+});
+</script>
+</body>
+</html>
