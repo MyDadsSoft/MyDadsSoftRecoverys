@@ -5,7 +5,8 @@ export default {
     }
 
     try {
-      const { id, email, discord, platform, package, transferMethod, status } = await request.json();
+      // rename 'package' to 'pkg' here
+      const { id, email, discord, platform, pkg, transferMethod, status } = await request.json();
 
       if (!id || !email) {
         return new Response(JSON.stringify({ success: false, error: 'Missing id or email' }), {
@@ -14,14 +15,15 @@ export default {
         });
       }
 
+      // keep the object key as 'package', value comes from 'pkg'
       const order = {
-        id, // unique ID, you can generate manually or via frontend
+        id,
         email,
         discord: discord || '',
         platform: platform || '',
-        package: package || '',
+        package: pkg || '',   // <-- renamed variable
         transferMethod: transferMethod || '',
-        status: status || 'paid', // default status is paid
+        status: status || 'paid',
         created: Date.now()
       };
 
