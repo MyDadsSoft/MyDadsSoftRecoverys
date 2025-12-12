@@ -10,7 +10,7 @@ const body = await context.request.text();
 let event;
 try {
 event = stripe.webhooks.constructEvent(body, sig, context.env.STRIPE_WEBHOOK_SECRET);
-} catch (e) {
+} catch (err) {
 return new Response('Invalid signature', { status: 400 });
 }
 
@@ -34,6 +34,7 @@ created: Date.now()
 };
 
 
+// Save to KV
 const kv = context.env.ORDERS;
 await kv.put(order.id, JSON.stringify(order));
 }
