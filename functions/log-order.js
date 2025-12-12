@@ -1,47 +1,52 @@
 export default {
   async fetch(request, env) {
-    // Allow only POST requests
-    if (request.method !== 'POST') {
-      return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
-        headers: { 'Content-Type': 'application/json' },
-        status: 405
+    if (request.method !== "POST") {
+      return new Response(JSON.stringify({ success: false, error: "Method Not Allowed" }), {
+        headers: { "Content-Type": "application/json" },
+        status: 405,
       });
     }
 
     try {
-      // Extract data from request
-      const { id, email, discord, platform, pkg, transferMethod, status } = await request.json();
-
-      if (!id || !email) {
-        return new Response(JSON.stringify({ success: false, error: 'Missing id or email' }), {
-          headers: { 'Content-Type': 'application/json' },
-          status: 400
+      if (!request.headers.get("content-type")?.includes("application/json")) {
+        return new Response(JSON.stringify({ success: false, error: "Invalid content type" }), {
+          headers: { "Content-Type": "application/json" },
+          status: 400,
         });
       }
 
-      // Build order object
+      const data = await request.json();
+      const id = data.id || data.orderId;
+
+      if (!id || !data.email) {
+        return new Response(JSON.stringify({ success: false, error: "Missing id or email" }), {
+          headers: { "Content-Type": "application/json" },
+          status: 400,
+        });
+      }
+
       const order = {
         id,
-        email,
-        discord: discord || '',
-        platform: platform || '',
-        package: pkg || '', // note: object key stays 'package'
-        transferMethod: transferMethod || '',
-        status: status || 'pending',
-        created: Date.now()
+        email: data.email,
+        discord: data.discord || "",
+        platform: data.platform || "",
+        pkg: data.pkg || "",
+        transferMethod: data.transferMethod || "",
+        status: data.status || "pending",
+        created: Date.now(),
       };
 
-      // Save to KV
-      await env.ORDERS.put(order.id, JSON.stringify(order));
+      await env.ORDERS.put(id, JSON.stringify(order));
 
       return new Response(JSON.stringify({ success: true, order }), {
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" }
       });
+
     } catch (err) {
       return new Response(JSON.stringify({ success: false, error: err.message }), {
-        headers: { 'Content-Type': 'application/json' },
-        status: 400
+        headers: { "Content-Type": "application/json" },
+        status: 400,
       });
     }
-  }
+  },
 };
