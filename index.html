@@ -1,93 +1,91 @@
 <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyDadsSoft Recoverys</title>
+<link rel="stylesheet" href="/styles.css">
+<script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID"></script>
+</head>
+<body>
+<header>
+<h1>MyDadsSoft Recoverys</h1>
+<p>GTA V Account Boosting & Safe Recoveries Since 2013</p>
+</header>
+
+
+<section class="card">
+<h2>Order a Boost / Recovery</h2>
 <form id="orderForm">
-<label>Email
-<input type="email" id="email" required />
-</label>
-
-
-<label>Discord
-<input type="text" id="discord" required />
-</label>
-
-
-<label>Platform
-<select id="platform">
-<option>PC</option>
-</select>
-</label>
-
-
-<label>Recovery Package
+<label>Email <input type="email" id="email" required></label>
+<label>Discord <input type="text" id="discord" required></label>
+<label>Platform <select id="platform"><option>PC</option></select></label>
+<label>Package
 <select id="package">
-<option value="10m">10 Million — $5</option>
-<option value="50m">50 Million — $15</option>
-<option value="100m">100 Million — $25</option>
+<option value="5">10 Million — £5</option>
+<option value="15">50 Million — £15</option>
+<option value="25">100 Million — £25</option>
 <option value="custom">Custom Amount</option>
 </select>
 </label>
-
-
-<label id="customAmountContainer" style="display:none;">
-Custom Amount (Millions)
-<input type="number" id="customAmount" min="1" />
-</label>
-
-
-<label>Credential Transfer Method
-<select id="transferMethod">
-<option value="none">I'll send after contact</option>
-<option value="onetimelink">One‑time secret URL (Privnote)</option>
+<label id="customAmountContainer" style="display:none;">Custom Amount (GBP) <input type="number" id="customAmount" min="1"></label>
+<label>Transfer Method <select id="transferMethod">
 <option value="screenshare">Screen-share</option>
+<option value="onetimelink">One-time URL</option>
 <option value="discord_dm">Discord DM</option>
-</select>
-</label>
-
-
-<label>Optional: One-time secret URL
-<input type="url" id="oneTimeUrl" placeholder="https://privnote.com/..." />
-</label>
-
-
+</select></label>
 <button type="submit" class="btn">Pay & Submit Order</button>
 </form>
+
+
+<div id="paypal-button-container" style="margin-top:20px;"></div>
 </section>
 
 
 <script>
 const pkg = document.getElementById('package');
 const customC = document.getElementById('customAmountContainer');
+pkg.addEventListener('change', () => { customC.style.display = pkg.value === 'custom' ? 'block' : 'none'; });
 
 
-pkg.addEventListener('change', () => {
-customC.style.display = pkg.value === 'custom' ? 'block' : 'none';
-});
+async function getUserCurrency() {
+try { const res = await fetch('https://ipapi.co/json/'); const data = await res.json(); return data.currency || 'GBP'; } catch { return 'GBP'; }
+}
 
 
-document.getElementById('orderForm').addEventListener('submit', async (e) => {
+async function convertPriceGBPTo(amountGBP, currency) {
+if(currency==='GBP') return amountGBP;
+const res = await fetch(`https://api.exchangerate.host/convert?from=GBP&to=${currency}&amount=${amountGBP}`);
+const data = await res.json();
+return data.result;
+}
+
+
+document.getElementById('orderForm').addEventListener('submit', async e => {
 e.preventDefault();
+const email = document.getElementById('email').value;
+const discord = document.getElementById('discord').value;
+const platform = document.getElementById('platform').value;
+const transferMethod = document.getElementById('transferMethod').value;
+const amountGBP = pkg.value==='custom'?Number(document.getElementById('customAmount').value):Number(pkg.value);
 
 
-const data = {
-email: email.value,
-discord: discord.value,
-platform: platform.value,
-transferMethod: transferMethod.value,
-oneTimeUrl: oneTimeUrl.value.trim(),
-pkg: pkg.value,
-customAmount: customAmount.value || null
-};
+const currency = await getUserCurrency();
+const amount = await convertPriceGBPTo(amountGBP, currency);
 
 
-const res = await fetch('/functions/checkout', {
-method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify(data)
+paypal.Buttons({
+createOrder: (data, actions) => actions.order.create({
+purchase_units: [{ amount: { value: amount.toFixed(2), currency_code: currency } }]
+}),
+onApprove: (data, actions) => actions.order.capture().then(async details => {
+alert(`Payment successful: ${details.payer.name.given_name} (${currency} ${amount.toFixed(2)})`);
+await fetch('/functions/paypal-webhook', {
+method:'POST', headers:{'Content-Type':'application/json'},
+body: JSON.stringify({ orderID: details.id, email, discord, platform, transferMethod, package: pkg.value })
 });
-
-
-const js = await res.json();
-if (js.url) window.location = js.url;
-else alert('Error creating payment session');
+})
+}).render('#paypal-button-container');
 });
 </script>
 </body>

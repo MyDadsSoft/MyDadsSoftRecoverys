@@ -1,73 +1,53 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>MDS Admin</title>
-<link rel="stylesheet" href="/styles.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard</title>
+<link rel="stylesheet" href="/styles.css">
 </head>
 <body>
 <header><h1>Admin Dashboard</h1></header>
-
-
 <section class="card">
-<h2>Orders</h2>
+<h2>All Orders</h2>
 <div id="orders"></div>
 </section>
-
-
 <script>
 async function loadOrders(){
-const res = await fetch('/data/orders.json?_=' + Date.now());
-return await res.json().catch(()=>[]);
+const res=await fetch('/functions/get-orders');
+return await res.json();
 }
-
-
-async function render(){
-const orders = await loadOrders();
-const box = document.getElementById('orders');
-box.innerHTML = '';
-
-
-orders.forEach(o => {
-const div = document.createElement('div');
-div.className = 'order';
-div.innerHTML = `
-<strong>${o.id}</strong><br>
-<b>Email:</b> ${o.email}<br>
-<b>Discord:</b> ${o.discord}<br>
-<b>Platform:</b> ${o.platform}<br>
-<b>Package:</b> ${o.packageLabel}<br>
-<b>Method:</b> ${o.transferMethod}<br>
-<b>Status:</b> ${o.status}<br>
-<hr>
-<button onclick="markDone('${o.id}')" class="btn-small">Mark Completed</button>
-<button onclick="deleteCreds('${o.id}')" class="btn-small">Confirm Credentials Deleted</button>
-`;
-box.appendChild(div);
+async function renderOrders(){
+const orders=await loadOrders();
+const container=document.getElementById('orders');
+container.innerHTML='';
+orders.forEach(order=>{
+const div=document.createElement('div');
+div.className='order';
+div.innerHTML=`
+<strong>ID:</strong> ${order.id}<br>
+<strong>Email:</strong> ${order.email}<br>
+<strong>Discord:</strong> ${order.discord}<br>
+<strong>Platform:</strong> ${order.platform}<br>
+<strong>Package:</strong> ${order.package}<br>
+<strong>Transfer Method:</strong> ${order.transferMethod}<br>
+<strong>Status:</strong> ${order.status}<br>
+<strong>Date:</strong> ${new Date(order.created).toLocaleString()}<br>
+<button onclick="markCompleted('${order.id}')" class="btn-small">Mark Completed</button>
+<button onclick="confirmDeleted('${order.id}')" class="btn-small">Confirm Credentials Deleted</button>
+<hr>`;
+container.appendChild(div);
 });
 }
-
-
-async function markDone(id){
-await fetch('/functions/admin_status', {
-method:'POST', headers:{'Content-Type':'application/json'},
-body:JSON.stringify({id, status:'completed'})
-});
-render();
+async function markCompleted(id){
+await fetch('/functions/update-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,action:'completed'})});
+renderOrders();
 }
-
-
-async function deleteCreds(id){
-await fetch('/functions/admin_status', {
-method:'POST', headers:{'Content-Type':'application/json'},
-body:JSON.stringify({id, deleted:true})
-});
-render();
+async function confirmDeleted(id){
+await fetch('/functions/update-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,action:'deleted'})});
+renderOrders();
 }
-
-
-render();
+renderOrders();
 </script>
 </body>
 </html>

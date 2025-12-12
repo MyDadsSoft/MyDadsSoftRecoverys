@@ -1,44 +1,12 @@
-import Stripe from 'stripe';
-
-
 export async function onRequestPost(context) {
-const stripe = new Stripe(context.env.STRIPE_SECRET);
-const sig = context.request.headers.get('stripe-signature');
-const body = await context.request.text();
+  const kv = context.env.ORDERS;
+  const data = await context.request.json();
+  const order = await kv.get(data.id, { type: 'json' });
+  if (!order) return new Response('Order not found', { status: 404 });
 
+  if (data.action === 'completed') order.status = 'completed';
+  if (data.action === 'deleted') order.status = 'credentials_deleted';
 
-let event;
-try {
-event = stripe.webhooks.constructEvent(body, sig, context.env.STRIPE_WEBHOOK_SECRET);
-} catch (err) {
-return new Response('Invalid signature', { status: 400 });
-}
-
-
-if (event.type === 'checkout.session.completed') {
-const session = event.data.object;
-const meta = session.metadata;
-
-
-const order = {
-id: session.id,
-email: meta.email,
-discord: meta.discord,
-platform: meta.platform,
-transferMethod: meta.transferMethod,
-oneTimeUrl: meta.oneTimeUrl,
-packageLabel: meta.pkg,
-customAmount: meta.customAmount,
-status: 'paid',
-created: Date.now()
-};
-
-
-// Save to KV
-const kv = context.env.ORDERS;
-await kv.put(order.id, JSON.stringify(order));
-}
-
-
-return new Response('ok');
+  await kv.put(data.id, JSON.stringify(order));
+  return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
 }
