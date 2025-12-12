@@ -1,8 +1,93 @@
-body{font-family:sans-serif;background:#f0f0f5;color:#fff;margin:0;padding:0;background:#2d0b55;}
-header{text-align:center;padding:1em;background:#4b148c;}
-.card{background:#5e1aae;padding:20px;margin:20px auto;border-radius:12px;width:90%;max-width:500px;}
-.btn, .btn-small{background:#9b4dff;color:#fff;border:none;padding:10px 15px;border-radius:8px;cursor:pointer;margin:5px;}
-.btn-small{padding:5px 10px;font-size:0.85em;}
-.order{margin-bottom:10px;}
-label{display:block;margin:10px 0;}
-input, select{width:100%;padding:5px;border-radius:5px;border:none;margin-top:5px;}
+/* Modern Premium Purple Theme */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #2c003e, #4b148c);
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    text-align: center;
+    padding: 2em;
+    background: rgba(75, 20, 140, 0.85);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+header h1 {
+    font-size: 2.5em;
+    margin: 0;
+    color: #ffda57;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+header p {
+    font-size: 1.2em;
+    color: #e0c8ff;
+}
+
+.card {
+    background: rgba(91, 33, 165, 0.9);
+    padding: 30px;
+    margin: 2em auto;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    transition: transform 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.btn, .btn-small {
+    background: linear-gradient(90deg, #ff6ef7, #8e2fff);
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    margin: 5px 2px;
+    font-weight: 600;
+    transition: background 0.3s, transform 0.2s;
+}
+
+.btn:hover, .btn-small:hover {
+    background: linear-gradient(90deg, #8e2fff, #ff6ef7);
+    transform: scale(1.05);
+}
+
+.order {
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+label {
+    display: block;
+    margin: 12px 0;
+    font-weight: 500;
+}
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    margin-top: 5px;
+    font-size: 1em;
+}
+
+#paypal-button-container {
+    margin-top: 25px;
+}
+
+@media (max-width: 600px) {
+    header h1 { font-size: 2em; }
+    .card { padding: 20px; }
+    .btn, .btn-small { padding: 10px 15px; font-size: 0.9em; }
+}
