@@ -1,11 +1,15 @@
 export default {
   async fetch(request, env) {
+    // Allow only POST requests
     if (request.method !== 'POST') {
-      return new Response('Method Not Allowed', { status: 405 });
+      return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+        headers: { 'Content-Type': 'application/json' },
+        status: 405
+      });
     }
 
     try {
-      // rename 'package' to 'pkg' here
+      // Extract data from request
       const { id, email, discord, platform, pkg, transferMethod, status } = await request.json();
 
       if (!id || !email) {
@@ -15,18 +19,19 @@ export default {
         });
       }
 
-      // keep the object key as 'package', value comes from 'pkg'
+      // Build order object
       const order = {
         id,
         email,
         discord: discord || '',
         platform: platform || '',
-        package: pkg || '',   // <-- renamed variable
+        package: pkg || '', // note: object key stays 'package'
         transferMethod: transferMethod || '',
-        status: status || 'paid',
+        status: status || 'pending',
         created: Date.now()
       };
 
+      // Save to KV
       await env.ORDERS.put(order.id, JSON.stringify(order));
 
       return new Response(JSON.stringify({ success: true, order }), {
