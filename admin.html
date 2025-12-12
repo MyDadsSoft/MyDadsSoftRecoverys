@@ -3,58 +3,108 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Dashboard</title>
+<title>Order Admin</title>
 <style>
-body { font-family: Arial, sans-serif; background:#f4f4f4; color:#333; margin:0; padding:0; }
-header { text-align:center; padding:2em; background:#222; color:#fff; }
-.card { background:#fff; padding:2em; margin:2em auto; border-radius:10px; max-width:800px; box-shadow:0 4px 10px rgba(0,0,0,0.1);}
-.order { border-bottom:1px solid #ccc; padding:10px 0; }
-button { margin:5px; padding:5px 10px; border:none; border-radius:5px; cursor:pointer; }
+  body { font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 20px; }
+  input, select, button { margin: 5px 0; padding: 5px; width: 100%; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+  th { background-color: #f4f4f4; }
 </style>
 </head>
 <body>
-<header><h1>Admin Dashboard</h1></header>
-<section class="card">
-  <h2>Orders</h2>
-  <div id="orders"></div>
-</section>
+
+<h1>Friends & Family Orders Admin</h1>
+
+<h2>Log New Order</h2>
+<form id="logOrderForm">
+  <input type="text" id="orderId" placeholder="Order ID (unique)" required>
+  <input type="email" id="email" placeholder="Customer Email" required>
+  <input type="text" id="discord" placeholder="Discord (optional)">
+  <input type="text" id="platform" placeholder="Platform (optional)">
+  <input type="text" id="package" placeholder="Package (optional)">
+  <input type="text" id="transferMethod" placeholder="Transfer Method (optional)">
+  <button type="submit">Log Order</button>
+</form>
+
+<h2>All Orders</h2>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Email</th>
+      <th>Status</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody id="ordersTable">
+    <tr><td colspan="4">Loading orders...</td></tr>
+  </tbody>
+</table>
+
 <script>
-async function loadOrders() {
-  const res = await fetch('/functions/get-orders');
-  return await res.json();
+const LOG_ORDER_URL = '/functions/log-order'; // adjust to your Worker path
+const GET_ORDERS_URL = '/functions/get-orders';
+const UPDATE_ORDER_URL = '/functions/update-order';
+
+async function fetchOrders() {
+  const res = await fetch(GET_ORDERS_URL);
+  const orders = await res.json();
+  const tbody = document.getElementById('ordersTable');
+  if (!orders || orders.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4">No orders found.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = orders.map(order => `
+    <tr>
+      <td>${order.id}</td>
+      <td>${order.email}</td>
+      <td>${order.status}</td>
+      <td>
+        <select onchange="updateStatus('${order.id}', this.value)">
+          <option value="">--Change Status--</option>
+          <option value="paid">Paid</option>
+          <option value="delivered">Delivered</option>
+          <option value="completed">Completed</option>
+        </select>
+      </td>
+    </tr>
+  `).join('');
 }
 
-async function renderOrders() {
-  const orders = await loadOrders();
-  const container = document.getElementById('orders');
-  container.innerHTML = '';
-  orders.forEach(order => {
-    const div = document.createElement('div');
-    div.className = 'order';
-    div.innerHTML = `<strong>ID:</strong> ${order.id}<br>
-    <strong>Email:</strong> ${order.email}<br>
-    <strong>Discord:</strong> ${order.discord}<br>
-    <strong>Platform:</strong> ${order.platform}<br>
-    <strong>Package:</strong> ${order.package}<br>
-    <strong>Transfer:</strong> ${order.transferMethod}<br>
-    <strong>Status:</strong> ${order.status}<br>
-    <button onclick="markCompleted('${order.id}')">Mark Completed</button>
-    <button onclick="confirmDeleted('${order.id}')">Confirm Credentials Deleted</button>`;
-    container.appendChild(div);
+async function updateStatus(orderId, status) {
+  if (!status) return;
+  await fetch(UPDATE_ORDER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orderId, status })
   });
+  fetchOrders();
 }
 
-async function markCompleted(id){
-  await fetch('/functions/update-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,action:'completed'})});
-  renderOrders();
-}
+document.getElementById('logOrderForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('orderId').value;
+  const email = document.getElementById('email').value;
+  const discord = document.getElementById('discord').value;
+  const platform = document.getElementById('platform').value;
+  const pkg = document.getElementById('package').value;
+  const transferMethod = document.getElementById('transferMethod').value;
 
-async function confirmDeleted(id){
-  await fetch('/functions/update-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,action:'deleted'})});
-  renderOrders();
-}
+  await fetch(LOG_ORDER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, email, discord, platform, package: pkg, transferMethod, status: 'paid' })
+  });
 
-renderOrders();
+  document.getElementById('logOrderForm').reset();
+  fetchOrders();
+});
+
+// Load orders on page load
+fetchOrders();
 </script>
+
 </body>
 </html>
