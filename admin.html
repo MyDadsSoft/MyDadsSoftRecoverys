@@ -21,7 +21,7 @@
   <input type="email" id="email" placeholder="Customer Email" required>
   <input type="text" id="discord" placeholder="Discord (optional)">
   <input type="text" id="platform" placeholder="Platform (optional)">
-  <input type="text" id="package" placeholder="Package (optional)">
+  <input type="text" id="pkg" placeholder="Package (optional)">
   <input type="text" id="transferMethod" placeholder="Transfer Method (optional)">
   <button type="submit">Log Order</button>
 </form>
@@ -48,8 +48,8 @@ const UPDATE_ORDER_URL = '/functions/update-order';
 
 // Function to generate a unique order ID
 function generateOrderId() {
-  const timestamp = Date.now().toString(36); // time-based unique string
-  const random = Math.random().toString(36).substring(2, 6); // random string
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substring(2, 6);
   return `ORD-${timestamp}-${random}`;
 }
 
@@ -95,13 +95,13 @@ document.getElementById('logOrderForm').addEventListener('submit', async (e) => 
   const email = document.getElementById('email').value;
   const discord = document.getElementById('discord').value;
   const platform = document.getElementById('platform').value;
-  const pkg = document.getElementById('package').value;
+  const pkg = document.getElementById('pkg').value; // updated field
   const transferMethod = document.getElementById('transferMethod').value;
 
   await fetch(LOG_ORDER_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, email, discord, platform, package: pkg, transferMethod, status: 'paid' })
+    body: JSON.stringify({ id, email, discord, platform, pkg, transferMethod, status: 'paid' })
   });
 
   document.getElementById('logOrderForm').reset();
