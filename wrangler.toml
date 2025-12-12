@@ -1,0 +1,8 @@
+name = "my-dads-soft-recovery"   # Name of your Worker project
+type = "javascript"              # Change to "typescript" if you're using TypeScript
+
+[build]
+command = "npm install"
+
+[env.production]
+name = "my-dads-soft-recovery-worker"   # Name of your worker
