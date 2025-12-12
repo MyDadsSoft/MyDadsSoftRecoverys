@@ -175,21 +175,21 @@ document.getElementById('orderForm').addEventListener('submit', async (e) => {
   }
 
   try {
-const res = await fetch('https://mydadssoftrecoverys.pages.dev/functions/log-order', {
-  method: 'POST', // Must be POST
-  headers: {'Content-Type': 'application/json'},
-  body: JSON.stringify({
-    id,
-    email,
-    discord,
-    platform,
-    pkg,
-    transferMethod,
-    status: 'pending'
-  })
-});
+    const res = await fetch('https://mydadssoftrecoverys.pages.dev/functions/log-order', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        id,
+        email,
+        discord,
+        platform,
+        pkg,
+        transferMethod,
+        status: 'pending'
+      })
+    });
 
-
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     const statusDiv = document.getElementById('status');
 
@@ -197,10 +197,7 @@ const res = await fetch('https://mydadssoftrecoverys.pages.dev/functions/log-ord
       statusDiv.textContent = `Order logged! Redirecting to PayPal...`;
       statusDiv.style.color = '#4caf50';
 
-      // Calculate price
       const price = (Number(pkg) * pricePerMillion).toFixed(2);
-
-      // Redirect to PayPal.me F&F
       const paypalLink = `https://paypal.me/MyDadsSoft/${price}`;
       window.open(paypalLink, '_blank');
     } else {
@@ -217,4 +214,3 @@ const res = await fetch('https://mydadssoftrecoverys.pages.dev/functions/log-ord
 
 </body>
 </html>
-
