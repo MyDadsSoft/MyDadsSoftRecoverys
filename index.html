@@ -93,7 +93,7 @@ h2 { text-align: center; margin-bottom: 1em; }
         <option value="discord_dm">Discord DM</option>
       </select>
     </label>
-    <button type="submit">Log Order (Friends & Family)</button>
+    <button type="submit">Pay with PayPal (F&F)</button>
   </form>
   <div id="status"></div>
 </section>
@@ -113,29 +113,33 @@ function generateOrderId() {
   return `ORD-${timestamp}-${random}`;
 }
 
-// Submit order to Cloudflare KV
+// Submit order and redirect to PayPal.me
 document.getElementById('orderForm').addEventListener('submit', async (e) => {
   e.preventDefault();
+
   const id = generateOrderId();
   const email = document.getElementById('email').value;
   const discord = document.getElementById('discord').value;
   const platform = document.getElementById('platform').value;
-  const pkg = document.getElementById('pkg').value === 'custom' ? document.getElementById('customAmount').value : document.getElementById('pkg').value;
+  const pkg = pkgSelect.value === 'custom' ? document.getElementById('customAmount').value : pkgSelect.value;
   const transferMethod = document.getElementById('transferMethod').value;
 
+  // Log order to Cloudflare KV
   const res = await fetch('/functions/log-order', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ id, email, discord, platform, pkg, transferMethod, status:'paid' })
+    body: JSON.stringify({ id, email, discord, platform, pkg, transferMethod, status:'pending' })
   });
 
   const data = await res.json();
   const statusDiv = document.getElementById('status');
   if(data.success) {
-    statusDiv.textContent = `Order logged successfully! Order ID: ${id}`;
+    statusDiv.textContent = `Order logged! Redirecting to PayPal...`;
     statusDiv.style.color = '#4caf50';
-    form.reset();
-    customC.style.display = 'none';
+
+    // Open PayPal.me link in new tab
+    const paypalLink = `https://paypal.me/MyDadsSoft/${pkg}`;
+    window.open(paypalLink, '_blank');
   } else {
     statusDiv.textContent = `Error: ${data.error}`;
     statusDiv.style.color = '#ff5252';
